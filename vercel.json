@@ -1,23 +1,21 @@
 {
   "version": 2,
+  "framework": null,
+  "outputDirectory": "public",
   "builds": [
     {
       "src": "api/index.php",
-      "use": "vercel-php@0.6.0"
-    },
-    {
-      "src": "public/**",
-      "use": "@vercel/static"
+      "use": "vercel-php@0.7.1"
     }
   ],
   "routes": [
     {
-      "src": "/(css|js|images)/(.*)",
-      "dest": "public/$1/$2"
-    },
-    {
       "src": "/build/(.*)",
       "dest": "public/build/$1"
+    },
+    {
+      "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
+      "dest": "public/$1"
     },
     {
       "src": "/(.*)",
@@ -29,6 +27,9 @@
     "APP_DEBUG": "false",
     "APP_URL": "https://portfolio.vercel.app",
     "LOG_CHANNEL": "stderr",
-    "SESSION_DRIVER": "cookie"
+    "SESSION_DRIVER": "cookie",
+    "VIEW_COMPILED_PATH": "/tmp/views",
+    "CACHE_DRIVER": "array",
+    "SESSION_DRIVER": "array"
   }
 }
