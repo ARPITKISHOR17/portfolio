@@ -1,138 +1,153 @@
-// Dark Mode Toggle
+// ─── Dark Mode ───────────────────────────────────────────────────────────────
+const html = document.documentElement;
 const darkModeToggle = document.getElementById('darkModeToggle');
 const sunIcon = document.getElementById('sunIcon');
 const moonIcon = document.getElementById('moonIcon');
-const html = document.documentElement;
 
-// Sync icon state with current theme (already applied by inline head script)
 function syncIcons() {
-    if (html.classList.contains('dark')) {
-        sunIcon.classList.remove('hidden');
-        moonIcon.classList.add('hidden');
-    } else {
-        sunIcon.classList.add('hidden');
-        moonIcon.classList.remove('hidden');
-    }
+    const isDark = html.classList.contains('dark');
+    sunIcon.classList.toggle('hidden', !isDark);
+    moonIcon.classList.toggle('hidden', isDark);
 }
-
-// Set icons on page load
 syncIcons();
 
-// Toggle dark mode
 darkModeToggle.addEventListener('click', () => {
     html.classList.toggle('dark');
-    
-    if (html.classList.contains('dark')) {
-        localStorage.setItem('theme', 'dark');
-    } else {
-        localStorage.setItem('theme', 'light');
-    }
-    
+    localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
     syncIcons();
 });
 
-// Mobile Menu Toggle
+// ─── Mobile Menu ─────────────────────────────────────────────────────────────
 const mobileMenuToggle = document.getElementById('mobileMenuToggle');
 const mobileMenu = document.getElementById('mobileMenu');
 const hamburgerIcon = document.getElementById('hamburgerIcon');
 const closeIcon = document.getElementById('closeIcon');
 
+function closeMobileMenu() {
+    mobileMenu.classList.add('hidden');
+    hamburgerIcon.classList.remove('hidden');
+    closeIcon.classList.add('hidden');
+}
+
 mobileMenuToggle.addEventListener('click', () => {
-    mobileMenu.classList.toggle('hidden');
-    hamburgerIcon.classList.toggle('hidden');
-    closeIcon.classList.toggle('hidden');
-    
-    if (!mobileMenu.classList.contains('hidden')) {
-        mobileMenu.classList.add('mobile-menu-enter');
-    }
+    const isHidden = mobileMenu.classList.toggle('hidden');
+    hamburgerIcon.classList.toggle('hidden', !isHidden);
+    closeIcon.classList.toggle('hidden', isHidden);
+    if (!isHidden) mobileMenu.classList.add('mobile-menu-enter');
 });
 
-// Close mobile menu when clicking on a link
-const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
-mobileNavLinks.forEach(link => {
-    link.addEventListener('click', () => {
-        mobileMenu.classList.add('hidden');
-        hamburgerIcon.classList.remove('hidden');
-        closeIcon.classList.add('hidden');
-    });
+document.querySelectorAll('.mobile-nav-link').forEach(link => {
+    link.addEventListener('click', closeMobileMenu);
 });
 
-// Close mobile menu when clicking outside
 document.addEventListener('click', (e) => {
     if (!mobileMenu.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
-        mobileMenu.classList.add('hidden');
-        hamburgerIcon.classList.remove('hidden');
-        closeIcon.classList.add('hidden');
+        closeMobileMenu();
     }
 });
 
-// Smooth scroll for navigation links
+// ─── Smooth Scroll ───────────────────────────────────────────────────────────
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();
         const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 });
 
-// Contact Form Submission (using Formspree or similar)
-const contactForm = document.getElementById('contactForm');
-if (contactForm) {
-    contactForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const formData = new FormData(contactForm);
-        const submitButton = contactForm.querySelector('button[type="submit"]');
-        const originalText = submitButton.innerHTML;
-        
-        submitButton.innerHTML = 'Sending...';
-        submitButton.disabled = true;
-        
-        try {
-            // Replace with your Formspree endpoint or email service
-            const response = await fetch('https://formspree.io/f/YOUR_FORM_ID', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-            
-            if (response.ok) {
-                alert('Thank you for your message! I will get back to you soon.');
-                contactForm.reset();
-            } else {
-                alert('Oops! There was a problem sending your message. Please try again or email me directly.');
-            }
-        } catch (error) {
-            alert('Oops! There was a problem sending your message. Please try again or email me directly.');
-        } finally {
-            submitButton.innerHTML = originalText;
-            submitButton.disabled = false;
+// ─── Typing Animation ────────────────────────────────────────────────────────
+const typingEl = document.getElementById('typingText');
+const phrases = ['Full Stack Developer', 'Laravel Specialist', 'REST API Expert', 'Backend Engineer'];
+let phraseIndex = 0;
+let charIndex = 0;
+let isDeleting = false;
+
+function type() {
+    const current = phrases[phraseIndex];
+    typingEl.textContent = isDeleting
+        ? current.substring(0, charIndex--)
+        : current.substring(0, charIndex++);
+
+    let delay = isDeleting ? 60 : 100;
+
+    if (!isDeleting && charIndex === current.length + 1) {
+        delay = 1800;
+        isDeleting = true;
+    } else if (isDeleting && charIndex === 0) {
+        isDeleting = false;
+        phraseIndex = (phraseIndex + 1) % phrases.length;
+        delay = 400;
+    }
+    setTimeout(type, delay);
+}
+type();
+
+// ─── Scroll Spy (active nav link) ────────────────────────────────────────────
+const navLinks = document.querySelectorAll('.nav-link');
+const sections = document.querySelectorAll('section[id]');
+
+function updateActiveNav() {
+    let current = '';
+    sections.forEach(section => {
+        if (window.scrollY >= section.offsetTop - 100) {
+            current = section.getAttribute('id');
         }
+    });
+    navLinks.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('data-section') === current);
     });
 }
+window.addEventListener('scroll', updateActiveNav, { passive: true });
+updateActiveNav();
 
-// Scroll animations
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
+// ─── Stat Counter Animation ──────────────────────────────────────────────────
+const statNumbers = document.querySelectorAll('.stat-number');
+let statsAnimated = false;
 
-const observer = new IntersectionObserver((entries) => {
+function animateStats() {
+    if (statsAnimated) return;
+    const aboutSection = document.getElementById('about');
+    if (!aboutSection) return;
+    const rect = aboutSection.getBoundingClientRect();
+    if (rect.top < window.innerHeight * 0.85) {
+        statsAnimated = true;
+        statNumbers.forEach(el => {
+            const target = parseInt(el.getAttribute('data-target'), 10);
+            const duration = 1200;
+            const step = Math.ceil(target / (duration / 16));
+            let current = 0;
+            const timer = setInterval(() => {
+                current = Math.min(current + step, target);
+                el.textContent = current;
+                if (current >= target) clearInterval(timer);
+            }, 16);
+        });
+    }
+}
+window.addEventListener('scroll', animateStats, { passive: true });
+animateStats();
+
+// ─── Scroll-to-Top Button ────────────────────────────────────────────────────
+const scrollTopBtn = document.getElementById('scrollTop');
+
+window.addEventListener('scroll', () => {
+    const show = window.scrollY > 400;
+    scrollTopBtn.style.opacity = show ? '1' : '0';
+    scrollTopBtn.style.pointerEvents = show ? 'auto' : 'none';
+}, { passive: true });
+
+scrollTopBtn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// ─── Reveal on Scroll ────────────────────────────────────────────────────────
+const revealObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
-            entry.target.classList.add('fade-in');
+            entry.target.classList.add('visible');
+            revealObserver.unobserve(entry.target);
         }
     });
-}, observerOptions);
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
-// Observe all sections
-document.querySelectorAll('section').forEach(section => {
-    observer.observe(section);
-});
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
