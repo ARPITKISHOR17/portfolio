@@ -1,3 +1,2 @@
 [build]
-  base    = "portfolio-static"
   publish = "portfolio-static"
